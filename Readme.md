@@ -27,6 +27,12 @@ Working with Python 3.8 and above, actual tested with Python 3.14
 - Debug-robust: no atexit in debugger, `close()` catches BaseException (KeyboardInterrupt/SystemExit)
 
 ## Usage
+### First test
+For a first test you can just download the *email_loghandler.py*-script, replace the call of `handler = make_email_handler(...)`
+at the end of the file with valid cedentials for your email account.
+Then run `python email_loghandler.py` and you should receive an email.
+
+### Usage in your script
 ```Python
 import logging
 from email_log_handler import make_email_handler, TRACE
@@ -132,6 +138,34 @@ logger.warning("Attention, something looks suspicious.")
             level=WARNING              → mail contains WARNING+
             attachment_min_level=DEBUG → attachment contains DEBUG+ (full log)
         None → no attachment.
+
+## Debugging
+You can run a local SMTP debugging server for testing email functionality with the
+[aiosmtpd](https://pypi.org/project/aiosmtpd/) module.
+Visit the linked Homepage for detailed information.<br>
+Instead of sending real emails, this server prints the content to the console.
+You don't need to worry about encryption or credential to log in your email server.
+
+You can install the aiosmtpd module with pip:
+```shell
+$ python -m pip install aiosmtpd
+```
+Then start aiosmtpd in a second console window:
+```shell
+$ python -m aiosmtpd -n
+```
+The server runs by default on localhost, at port 8025.
+Any emails sent to this server are printed to the terminal.
+The debug server doesn’t implement any authentication or security,
+making it perfect for debugging.
+
+email_loghandler configuration for aiosmtpd:
+```python
+smtp_server = "localhost"
+smtp_port = 8025
+sender_email = "me@example.com"
+receiver_email = "you@example.com"
+```
 
 ## License
 This Program is licensed under MIT license.
