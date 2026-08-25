@@ -13,7 +13,7 @@ Usage:
     logger.setLevel(TRACE)  # Globally allow TRACE and above
 
     handler = make_email_handler(
-        smtp_host="smtp.example.com",
+        smtp_server="smtp.example.com",
         smtp_port=587,
         use_tls=True,
         username="username@example.com",
@@ -133,7 +133,7 @@ class BufferedSMTPHandler(logging.Handler):
         {min_level}        Current filter level of the email body
 
     Parameters:
-        smtp_host (str):
+        smtp_server (str):
             Address of the SMTP server.
 
         smtp_port (int, default=587):
@@ -201,7 +201,7 @@ class BufferedSMTPHandler(logging.Handler):
 
     def __init__(
         self,
-        smtp_host: str,
+        smtp_server: str,
         smtp_port: int = 587,
         *,
         username: Optional[str] = None,
@@ -225,7 +225,7 @@ class BufferedSMTPHandler(logging.Handler):
         if use_ssl and use_tls:
             raise ValueError("use_ssl and use_tls are mutually exclusive. Please set only one.")
 
-        self.smtp_host = smtp_host
+        self.smtp_server = smtp_server
         self.smtp_port = smtp_port
         self.username = username
         self.password = password
@@ -449,9 +449,9 @@ class BufferedSMTPHandler(logging.Handler):
 
             # Connection setup
             if self.use_ssl:
-                server = smtplib.SMTP_SSL(self.smtp_host, self.smtp_port, timeout=self.timeout)
+                server = smtplib.SMTP_SSL(self.smtp_server, self.smtp_port, timeout=self.timeout)
             else:
-                server = smtplib.SMTP(self.smtp_host, self.smtp_port, timeout=self.timeout)
+                server = smtplib.SMTP(self.smtp_server, self.smtp_port, timeout=self.timeout)
 
             with server:
                 # Optional: debug controlled via environment variables
@@ -512,7 +512,7 @@ class BufferedSMTPHandler(logging.Handler):
 # -----------------------------------------------------------------------------
 def make_email_handler(
     *,
-    smtp_host: str,
+    smtp_server: str,
     smtp_port: int = 587,
     from_addr: str,
     to_addrs: Union[str, Sequence[str]],
@@ -537,7 +537,7 @@ def make_email_handler(
     Creates the handler with typical configuration and sets level & formatter.
     """
     handler = BufferedSMTPHandler(
-        smtp_host=smtp_host,
+        smtp_server=smtp_server,
         smtp_port=smtp_port,
         username=username,
         password=password,
@@ -576,7 +576,7 @@ if __name__ == "__main__":
     )
 
     handler = make_email_handler(
-        smtp_host="smtp.example.com",
+        smtp_server="smtp.example.com",
         smtp_port=587,
         use_tls=True,
         use_ssl=False,

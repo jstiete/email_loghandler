@@ -35,7 +35,7 @@ logger = logging.getLogger("my_app_logger")
 logger.setLevel(TRACE)      # Globally allow TRACE and above
 
 handler = make_email_handler(
-    smtp_host="smtp.example.com",
+    smtp_server="smtp.example.com",
     smtp_port=587,
     use_tls=True,
     username="username@example.com",
@@ -68,7 +68,7 @@ logger.warning("Attention, something looks suspicious.")
 | \{min_level}     | Current filter level of the email body   |
 
 ## Parameters:
-    smtp_host (str):
+    smtp_server (str):
         Address of the SMTP server.
 
     smtp_port (int, default=587):
