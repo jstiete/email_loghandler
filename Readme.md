@@ -15,6 +15,10 @@ Therefore, no explicit function call is required for sending.
 
 Working with Python 3.8 and above, actual tested with Python 3.14
 
+### Difference to existing projects
+The main difference to the standard [SMTPHandler](https://docs.python.org/3/library/logging.handlers.html#smtphandler)
+is, that this handler does not send a seperate email for every log message.
+
 ## Main features:
 - Buffering of log entries until program termination
 - Sending an email whose content is filtered according to handler.level
@@ -31,6 +35,16 @@ Working with Python 3.8 and above, actual tested with Python 3.14
 For a first test you can just download the *email_loghandler.py*-script, replace the call of `handler = make_email_handler(...)`
 at the end of the file with valid cedentials for your email account.
 Then run `python email_loghandler.py` and you should receive an email.
+
+### Installation
+You can install the email_loghandler modul with pip:
+```shell
+pip install git+ssh://git@github.com/jstiete/email_loghandler
+```
+Or with any other packet manager (like uv):
+```shell
+uv add git+ssh://git@github.com/jstiete/email_loghandler
+```
 
 ### Usage in your script
 ```Python
