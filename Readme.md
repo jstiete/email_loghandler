@@ -45,6 +45,11 @@ Or with any other packet manager (like uv):
 ```shell
 uv add git+ssh://git@github.com/jstiete/email_loghandler
 ```
+Or using https instead of ssh:
+```shell
+pip install git+https://github.com/jstiete/email_loghandler
+uv add git+https://github.com/jstiete/email_loghandler
+```
 
 ### Usage in your script
 ```Python
