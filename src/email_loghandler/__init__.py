@@ -5,6 +5,6 @@ from .email_loghandler import make_email_handler
 from .email_loghandler import TRACE
 
 __all__ = ["BufferedSMTPHandler",
-           "make_email_handlern",
+           "make_email_handler",
            "TRACE",
            ]

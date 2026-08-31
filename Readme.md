@@ -116,7 +116,7 @@ logger.warning("Attention, something looks suspicious.")
         SMTP over SSL (port 465).
         Note: use_ssl and use_tls are mutually exclusive.
 
-    ssl_context (ssl.SSLContext):
+    ssl_context (ssl.SSLContext | None):
         User-defined SSL context for the SMTP connection.
         If None, a default SSL context is created using certifi.
 
