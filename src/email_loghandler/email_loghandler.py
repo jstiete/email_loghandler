@@ -50,11 +50,14 @@ import os
 import socket
 import sys
 import smtplib
+import ssl
+import certifi
 import threading
 from datetime import datetime
 import logging
 from typing import List, Optional, Sequence, Union
 from email.message import EmailMessage
+
 
 
 # ---------------------------------------------------------------------------
@@ -156,6 +159,10 @@ class BufferedSMTPHandler(logging.Handler):
             SMTP over SSL (port 465).
             Note: use_ssl and use_tls are mutually exclusive.
 
+        ssl_context (ssl.SSLContext | None):
+            User-defined SSL context for the SMTP connection.
+            If None, a default SSL context is created using certifi.
+
         timeout (float | None):
             Timeout for the SMTP connection in seconds.
 
@@ -208,6 +215,7 @@ class BufferedSMTPHandler(logging.Handler):
         password: Optional[str] = None,
         use_tls: bool = True,
         use_ssl: bool = False,
+        ssl_context: Optional[ssl.SSLContext] = None,
         timeout: Optional[float] = 10.0,
         from_addr: str,
         to_addrs: Union[str, Sequence[str]],
@@ -232,6 +240,7 @@ class BufferedSMTPHandler(logging.Handler):
         self.use_tls = use_tls
         self.use_ssl = use_ssl
         self.timeout = timeout
+        self.ssl_context = ssl_context
 
         self.from_addr = from_addr
         self.to_addrs = _ensure_list(to_addrs)
@@ -448,8 +457,10 @@ class BufferedSMTPHandler(logging.Handler):
                 recipients = [self.from_addr]
 
             # Connection setup
+            if self.ssl_context is None:
+                self.ssl_context = ssl.create_default_context(cafile=certifi.where())
             if self.use_ssl:
-                server = smtplib.SMTP_SSL(self.smtp_server, self.smtp_port, timeout=self.timeout)
+                server = smtplib.SMTP_SSL(self.smtp_server, self.smtp_port, timeout=self.timeout, context=self.ssl_context)
             else:
                 server = smtplib.SMTP(self.smtp_server, self.smtp_port, timeout=self.timeout)
 
@@ -463,7 +474,7 @@ class BufferedSMTPHandler(logging.Handler):
 
                 server.ehlo()
                 if self.use_tls and not self.use_ssl:
-                    server.starttls()
+                    server.starttls(context=self.ssl_context)
                     server.ehlo()
 
                 if self.username:
@@ -520,6 +531,7 @@ def make_email_handler(
     password: Optional[str] = None,
     use_tls: bool = True,
     use_ssl: bool = False,
+    ssl_context: Optional[ssl.SSLContext] = None,
     timeout: Optional[float] = 10.0,
     cc_addrs: Optional[Union[str, Sequence[str]]] = None,
     bcc_addrs: Optional[Union[str, Sequence[str]]] = None,
@@ -543,6 +555,7 @@ def make_email_handler(
         password=password,
         use_tls=use_tls,
         use_ssl=use_ssl,
+        ssl_context=ssl_context,
         timeout=timeout,
         from_addr=from_addr,
         to_addrs=to_addrs,
