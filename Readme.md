@@ -81,6 +81,54 @@ logger.warning("Attention, something looks suspicious.")
 # No explicit flush() needed – sending happens automatically at the end.
 ```
 
+### Use config file for email credentials
+`make_email_handler()` can be configured entirely through a ConfigParser object, allowing SMTP credentials,
+server settings, logging thresholds, and formatting options to be defined in an external configuration file.  
+**Any values present in the config file override the function arguments!**
+
+This makes the handler easy to integrate into applications where email settings should not be hard‑coded,
+such as production systems, shared environments, or tools that rely on user‑provided configuration.
+
+```ini
+## config.ini file
+
+[EMAIL_LOGHANDLER]
+smtp_server=smtp.example.com
+smtp_port=587
+use_tls=True
+username=username@example.com
+password=***PASSWORD***
+from_addr=username@example.com
+to_addrs=receiver@example.com, receiver_2@example.com
+```
+
+```python
+import logging
+from email_log_handler import make_email_handler, TRACE
+from configparser import ConfigParser
+
+logger = logging.getLogger("my_app_logger")
+logger.setLevel(TRACE)      # Globally allow TRACE and above
+
+# Load configuration file
+config = ConfigParser()
+config.read("config.ini")
+
+handler = make_email_handler(
+    config=config,
+    smtp_server="This will be overwritten by config",
+    subject_template="[Log-Report] {program_name} – {count} entries (max: {levelname_max})",
+    header="Hello {program_name} user,\n\nhere is the log excerpt:\n",
+    footer="\n--\nAutomatic dispatch @ {hostname} / {date:%Y-%m-%d %H:%M}",
+    level=logging.WARNING,               # From WARNING upward in the mail body
+    attachment_min_level=logging.DEBUG,  # But send full log from DEBUG upward as attachment
+)
+
+logger.addHandler(handler)
+
+logger.info("All ready.")
+```
+
 ## Placeholders for `subject_template`, `header`, `footer`:
 | Placeholder      | Description                              |
 |------------------|------------------------------------------|

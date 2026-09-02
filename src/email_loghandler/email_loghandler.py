@@ -57,6 +57,7 @@ from datetime import datetime
 import logging
 from typing import List, Optional, Sequence, Union
 from email.message import EmailMessage
+from configparser import ConfigParser
 
 
 
@@ -522,11 +523,12 @@ class BufferedSMTPHandler(logging.Handler):
 # Convenience function: create handler
 # -----------------------------------------------------------------------------
 def make_email_handler(
+    config:ConfigParser = None,
     *,
-    smtp_server: str,
+    smtp_server: str = None,
     smtp_port: int = 587,
-    from_addr: str,
-    to_addrs: Union[str, Sequence[str]],
+    from_addr: str = None,
+    to_addrs: Union[str, Sequence[str]] = None,
     username: Optional[str] = None,
     password: Optional[str] = None,
     use_tls: bool = True,
@@ -547,7 +549,62 @@ def make_email_handler(
 ) -> BufferedSMTPHandler:
     """
     Creates the handler with typical configuration and sets level & formatter.
+    Values from config override given function arguments.
     """
+    if config is not None:
+        if (value := config.get("EMAIL_LOGHANDLER", "smtp_server", fallback=None)) is not None:
+            smtp_server = value
+        if (value := config.getint("EMAIL_LOGHANDLER", "smtp_port", fallback=None)) is not None:
+            smtp_port = value
+        if (value := config.get("EMAIL_LOGHANDLER", "username", fallback=None)) is not None:
+            username = value
+        if (value := config.get("EMAIL_LOGHANDLER", "password", raw=True, fallback=None)) is not None:
+            password = value
+        if (value := config.get("EMAIL_LOGHANDLER", "from_addr", fallback=None)) is not None:
+            from_addr = value
+        if (value := config.get("EMAIL_LOGHANDLER", "to_addrs", fallback=None)) is not None:
+            to_addrs = [s.strip() for s in value.split(",")]
+        if (value := config.getboolean("EMAIL_LOGHANDLER", "use_tls", fallback=None)) is not None:
+            use_tls = value
+            if (value := config.getboolean("EMAIL_LOGHANDLER", "use_ssl", fallback=None)) is not None:
+                use_ssl = value
+            else:
+                use_ssl = not use_tls
+        if (value := config.getfloat("EMAIL_LOGHANDLER", "timeout", fallback=None)) is not None:
+            timeout = value
+        if (value := config.get("EMAIL_LOGHANDLER", "cc_addrs", fallback=None)) is not None:
+            cc_addrs = [s.strip() for s in value.split(",")]
+        if (value := config.get("EMAIL_LOGHANDLER", "bcc_addrs", fallback=None)) is not None:
+            bcc_addrs = [s.strip() for s in value.split(",")]
+        if (value := config.get("EMAIL_LOGHANDLER", "subject_template", fallback=None)) is not None:
+            subject_template = value
+        if (value := config.get("EMAIL_LOGHANDLER", "header", fallback=None)) is not None:
+            header = value
+        if (value := config.get("EMAIL_LOGHANDLER", "footer", fallback=None)) is not None:
+            footer = value
+        if (value := config.getboolean("EMAIL_LOGHANDLER", "register_atexit", fallback=None)) is not None:
+            register_atexit = value
+        if (value := config.getint("EMAIL_LOGHANDLER", "max_buffer", fallback=None)) is not None:
+            max_buffer = value
+        if (value := config.getboolean("EMAIL_LOGHANDLER", "send_if_empty", fallback=None)) is not None:
+            send_if_empty = value
+        if (value := config.get("EMAIL_LOGHANDLER", "level", fallback=None)) is not None:
+            try:
+                level = logging.getLevelNamesMapping()[value.upper()]
+            except KeyError:
+                raise KeyError(f"level must be one of {list(logging.getLevelNamesMapping().keys())}")
+        if (value := config.get("EMAIL_LOGHANDLER", "attachment_min_level", fallback=None)) is not None:
+            try:
+                attachment_min_level = logging.getLevelNamesMapping()[value.upper()]
+            except KeyError:
+                raise KeyError(f"attachment_min_level must be one of {list(logging.getLevelNamesMapping().keys())}")
+    if smtp_server is None:
+        raise ValueError("smtp_server is not set")
+    if from_addr is None:
+        raise ValueError("from_addr is not set")
+    if to_addrs is None:
+        raise ValueError("to_addrs is not set")
+
     handler = BufferedSMTPHandler(
         smtp_server=smtp_server,
         smtp_port=smtp_port,
